@@ -34,8 +34,7 @@ def display_select_mode():
     """
     回答モードのラジオボタンを表示
     """
-    # 回答モードを選択する用のラジオボタンを表示
-    # 目標UIは左サイドバーに「利用目的」＋説明カード
+    # 左サイドバーに「利用目的」＋説明カード
     with st.sidebar:
         st.header("利用目的")
         st.session_state.mode = st.radio(

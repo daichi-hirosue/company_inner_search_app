@@ -14,7 +14,6 @@ import constants as ct
 # 関数定義
 ############################################################
 def _inject_base_css():
-    """見た目を画像に寄せる軽いCSS（任意）"""
     st.markdown("""
     <style>
     .main .block-container {max-width: 980px; padding-top: 2rem;}

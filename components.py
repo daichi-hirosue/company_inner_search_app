@@ -20,6 +20,21 @@ def _inject_base_css():
     section[data-testid="stSidebar"] > div {background: #f4f5f7;}
     h1, h2, h3 {letter-spacing: .02em;}
     .stChatInputContainer textarea {min-height: 44px;}
+
+    section[data-testid="stSidebar"] .stCodeBlock,
+    section[data-testid="stSidebar"] pre,
+    section[data-testid="stSidebar"] code {
+      background: #fff !important;   /* 白 */
+      color: #111 !important;        /* 文字は濃いめ */
+    }
+    section[data-testid="stSidebar"] .stCodeBlock {
+      border: 1px solid #e5e7eb;     /* 薄い枠線 */
+      border-radius: 8px;            /* 角丸 */
+    }
+    section[data-testid="stSidebar"] pre {
+      padding: 10px 12px;            /* 余白 */
+      margin: .25rem 0 .75rem;       /* 外側余白 */
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -42,6 +57,9 @@ def display_select_mode():
             options=[ct.ANSWER_MODE_1, ct.ANSWER_MODE_2],
             index=0, label_visibility="collapsed"
         )
+
+        st.divider()
+
         st.markdown("**『社内文書検索』を選択した場合**")
         st.info("入力内容と関連性が高い社内文書のありかを検索できます。")
         st.code("【入力例】\n社員の育成方針に関するMTGの議事録", wrap_lines=True, language=None)
@@ -54,13 +72,14 @@ def display_initial_ai_message():
     """
     AIメッセージの初期表示
     """
+    with st.chat_message("assistant"):
     # メイン領域：緑（案内）＋黄（補足）だけを表示
-    st.success(
-        "こんにちは。私は社内文書の情報をもとに回答する生成AIチャットボットです。"
-        " サイドバーで利用目的を選択し、画面下部のチャット欄からメッセージを送信してください。",
-        icon="🧭"
-    )
-    st.warning("具体的に入力したほうが期待通りの回答を得やすいです。", icon="⚠️")
+        st.success(
+            "こんにちは。私は社内文書の情報をもとに回答する生成AIチャットボットです。"
+            " サイドバーで利用目的を選択し、画面下部のチャット欄からメッセージを送信してください。",
+            icon="🧭"
+        )
+        st.warning("具体的に入力したほうが期待通りの回答を得やすいです。", icon="⚠️")
 
 
 def display_conversation_log():
@@ -93,7 +112,7 @@ def display_conversation_log():
                         icon = utils.get_source_icon(message['content']['main_file_path'])
                         # 参照元ドキュメントのページ番号が取得できた場合にのみ、ページ番号を表示
                         if "main_page_number" in message["content"]:
-                            st.success(f"{message['content']['main_file_path']}", icon=icon)
+                            st.success(f"{message['content']['main_file_path']}（ページNo.{message['content']['main_page_number']}）", icon=icon)
                         else:
                             st.success(f"{message['content']['main_file_path']}", icon=icon)
                         
@@ -162,10 +181,10 @@ def display_search_llm_response(llm_response):
         icon = utils.get_source_icon(main_file_path)
         # ページ番号が取得できた場合のみ、ページ番号を表示（ドキュメントによっては取得できない場合がある）
         if "page" in llm_response["context"][0].metadata:
-            # ページ番号を取得
-            main_page_number = llm_response["context"][0].metadata["page"]
+            # ページ番号を取得し、1ページ目が0ページとなるため+1する
+            main_page_number = llm_response["context"][0].metadata["page"] + 1
             # 「メインドキュメントのファイルパス」と「ページ番号」を表示
-            st.success(f"{main_file_path}", icon=icon)
+            st.success(f"{main_file_path}（ページNo.{main_page_number}）", icon=icon)
         else:
             # 「メインドキュメントのファイルパス」を表示
             st.success(f"{main_file_path}", icon=icon)
@@ -197,10 +216,10 @@ def display_search_llm_response(llm_response):
             
             # ページ番号が取得できない場合のための分岐処理
             if "page" in document.metadata:
-                # ページ番号を取得
-                sub_page_number = document.metadata["page"]
+                # ページ番号を取得し、1ページ目が0ページとなるため+1する
+                sub_page_number = document.metadata["page"] + 1
                 # 「サブドキュメントのファイルパス」と「ページ番号」の辞書を作成
-                sub_choice = {"source": sub_file_path, "page_number": sub_page_number}
+                sub_choice = {"source": f"{sub_file_path}（ページNo.{sub_page_number}）", "page_number": sub_page_number}
             else:
                 # 「サブドキュメントのファイルパス」の辞書を作成
                 sub_choice = {"source": sub_file_path}
@@ -299,9 +318,9 @@ def display_contact_llm_response(llm_response):
             # ページ番号が取得できた場合のみ、ページ番号を表示（ドキュメントによっては取得できない場合がある）
             if "page" in document.metadata:
                 # ページ番号を取得
-                page_number = document.metadata["page"]
+                page_number = document.metadata["page"] + 1
                 # 「ファイルパス」と「ページ番号」
-                file_info = f"{file_path}"
+                file_info = f"{file_path}（ページNo.{page_number}）"
             else:
                 # 「ファイルパス」のみ
                 file_info = f"{file_path}"
